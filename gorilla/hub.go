@@ -5,14 +5,18 @@
 package gorilla
 
 import (
+	"Gorilla_Websocket_Exercise/database"
 	"encoding/json"
+	"fmt"
+	"log"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
 type Online struct {
-	Label string
-	Name  string
+	User    string
+	Message string
 }
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -41,19 +45,26 @@ func NewHub() *Hub {
 }
 
 func (h *Hub) Run() {
+	//connect to db
+	db, err := database.ConnectDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 	for {
 		select {
 		case client := <-h.register:
 			h.Clients[client] = true
 			if _, ok := h.Clients[client]; ok {
 				var online1 Online
-				online1.Name = "Helena"
-				online1.Label = "online"
+				online1.User = ""
+				online1.Message = ""
 				for cl := range h.Clients {
 					w, err := cl.Conn.NextWriter(websocket.TextMessage)
 					if err != nil {
 						return
 					}
+
 					on, _ := json.Marshal(online1)
 					w.Write(on)
 				}
@@ -67,6 +78,21 @@ func (h *Hub) Run() {
 			for client := range h.Clients {
 				select {
 				case client.send <- message:
+					content := string(message)
+					fmt.Println("message", message)
+
+					m := strings.Split(content, " ")
+					big := len(m)
+					var online1 Online
+					online1.User = strings.Trim(m[0], ":")
+					online1.Message = strings.Join(m[1:big], " ")
+
+					//upload message to db
+					_, err = db.Exec("INSERT INTO messages (sender, content) VALUES (?,?)", online1.User, online1.Message)
+					if err != nil {
+						fmt.Println("error inserting message into db", err)
+					}
+
 				default:
 					close(client.send)
 					delete(h.Clients, client)

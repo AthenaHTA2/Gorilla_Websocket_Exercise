@@ -35,12 +35,13 @@ body {
     overflow: hidden;
 }
 
-#msg{
+
+.msg{
     background-color: #8EC3B0;
     border-color: #8EC3B0;
 }
 
-#msg:focus{
+.msg:focus{
     background-color: #FEE3EC;
     border-color: #CDF0EA;
     border-color: #F999B7;

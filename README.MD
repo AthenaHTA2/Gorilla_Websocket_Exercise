@@ -46,3 +46,37 @@ On document load, the script checks for websocket functionality in the browser. 
 To allow the user to manually scroll through the chat log without interruption from new messages, the appendLog function checks the scroll position before adding new content. If the chat log is scrolled to the bottom, then the function scrolls new content into view after adding the content. Otherwise, the scroll position is not changed.
 
 The form handler writes the user input to the websocket and clears the input field.
+
+# Steps to add SQLite connection to the project
+1. Install dependencies and import packages: 
+go get -u github.com/mattn/go-sqlite3
+
+import (
+    "database/sql"
+    _ "github.com/mattn/go-sqlite3"
+)
+
+2. Open a db connection, provide the driver name (sqlite3) and the database file name or path::
+
+db, err := sql.Open("sqlite3", "path/to/database.db")
+if err != nil {
+    // handle error
+}
+defer db.Close()
+
+3.Create a table
+
+_, err = db.Exec(`CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT)`)
+if err != nil {
+    // handle error
+}
+
+4. Make db operations
+
+content := "Hello, SQLite!"
+_, err = db.Exec("INSERT INTO messages (content) VALUES (?)", content)
+if err != nil {
+    // handle error
+}
+
+
