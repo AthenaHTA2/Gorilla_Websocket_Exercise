@@ -1,4 +1,4 @@
-module my_chat
+module Gorilla_Websocket_Exercise
 
 go 1.18
 

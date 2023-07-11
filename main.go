@@ -5,10 +5,10 @@
 package main
 
 import (
+	"Gorilla_Websocket_Exercise/gorilla"
 	"flag"
 	"log"
 	"net/http"
-
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
@@ -23,16 +23,18 @@ func ServeHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "home.html")
+	http.ServeFile(w, r, "./views/home.html")
 }
 
 func main() {
 	flag.Parse()
-	hub := NewHub()
+	hub := gorilla.NewHub()
 	go hub.Run()
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", ServeHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		ServeWs(hub, w, r)
+		gorilla.ServeWs(hub, w, r)
 	})
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
